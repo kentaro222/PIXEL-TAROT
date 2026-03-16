@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOT TAROT - ドット絵タロット占い＆図鑑 -</title>
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            --text-color: #eaddcf;
+            --card-bg: rgba(22, 33, 62, 0.9);
+            --card-border: #d4af37;
+            --btn-bg: #0f3460;
+            --btn-hover: #e94560;
+            --accent-green: #27ae60;
+            --accent-red: #c0392b;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-color);
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--card-border);
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin-top: 20px;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .settings-panel {
+            margin: 20px 0;
+            font-size: 1rem;
+        }
+
+        .settings-panel label {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .controls {
+            margin-bottom: 30px;
+        }
+
+        button {
+            background-color: var(--btn-bg);
+            color: white;
+            border: 1px solid var(--card-border);
+            padding: 12px 28px;
+            font-size: 16px;
+            margin: 10px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        button:hover {
+            background-color: var(--btn-hover);
+            transform: translateY(-2px);
+        }
+
+        /* カードと結果のレイアウト */
+        #result-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            margin-top: 20px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .reading-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .card-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 320px;
+            background-color: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .position-label {
+            margin-bottom: 15px;
+            color: var(--card-border);
+            font-weight: bold;
+            font-size: 1.2em;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            padding-bottom: 5px;
+            width: 100%;
+        }
+
+        /* ドット絵カードのスタイル */
+        .card-container {
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+
+        .card-sprite {
+            width: 160px;
+            height: 240px;
+            background-image: url('タロット16.png');
+            background-size: 960px 960px;
+            background-position: -640px -720px; /* 初期：裏面 */
+            image-rendering: pixelated;
+            border: 3px solid #111;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 回転アニメーション */
+        .flip { animation: flip-animation 0.6s ease-in-out forwards; }
+        .flip-reversed { animation: flip-reversed-animation 0.6s ease-in-out forwards; }
+        .reversed { transform: rotate(180deg) !important; }
+
+        @keyframes flip-animation {
+            0% { transform: rotate(0deg) scaleX(1); }
+            50% { transform: rotate(0deg) scaleX(0); }
+            100% { transform: rotate(0deg) scaleX(1); }
+        }
+
+        @keyframes flip-reversed-animation {
+            0% { transform: rotate(0deg) scaleX(1); }
+            50% { transform: rotate(90deg) scaleX(0); }
+            100% { transform: rotate(180deg) scaleX(1); }
+        }
+
+        /* テキスト情報のスタイル */
+        .card-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .card-direction {
+            font-size: 0.85em;
+            padding: 4px 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .upright { background-color: var(--accent-green); color: white; }
+        .reversed-tag { background-color: var(--accent-red); color: white; }
+
+        .meaning-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .keywords {
+            color: var(--card-border);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+
+        .advice-box {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed rgba(255,255,255,0.2);
+            color: #a8b2d1;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>✨ DOT TAROT ✨</h1>
+    
+    <div class="settings-panel">
+        <label>
+            <input type="checkbox" id="use-reversed" checked> 逆位置を有効にする
+        </label>
+    </div>
+    
+    <div class="controls">
+        <button onclick="drawCards(1)">ワンオラクル (1枚)</button>
+        <button onclick="drawCards(3)">スリーカード (3枚)</button>
+    </div>
+
+    <div id="result-container">
+        <div id="reading-area" class="reading-section"></div>
+    </div>
+
+    <script>
+        // 図鑑のデータを完全移植（名前とテキストデータ）
+        const tarotData = [
+            { id: 0, name: "愚者 (The Fool)", uprightK: "自由、始まり、冒険、純粋", uprightD: "常識にとらわれない自由な心を示します。新しいことへの挑戦や、リスクを恐れない楽観的な姿勢を表しています。", reversedK: "無計画、軽率、わがまま、不安定", reversedD: "自由が行き過ぎて無責任になっている状態です。足元を見ずに進もうとしていたり、現実逃避をしている可能性があります。", advice: "「ゼロからのスタート」を意識してください。計画よりも直感を信じる場面ですが、足元の確認だけは忘れずに。" },
+            { id: 1, name: "魔術師 (The Magician)", uprightK: "創造、自信、技術、意志", uprightD: "準備が整い、行動を起こす時です。あなたの持つスキルやコミュニケーション能力を使って、望む結果を生み出せます。", reversedK: "優柔不断、詐欺、空回り、スランプ", reversedD: "能力を悪用していたり、自信がなくて最初の一歩が踏み出せない状態です。準備不足や嘘が含まれている可能性も。", advice: "「道具は揃っている」と認識すること。あとはあなたが「やる」と決めるだけで物語は動き出します。" },
+            { id: 2, name: "女教皇 (The High Priestess)", uprightK: "直感、知性、神秘、静寂", uprightD: "理屈よりも直感や精神性を大切にする時です。静かに状況を見守り、内なる声に耳を傾けることで真実が見えます。", reversedK: "神経質、冷淡、疑心暗鬼、批判的", reversedD: "考えすぎて情緒不安定になったり、他人に対して心を閉ざしています。ヒステリックな感情が判断を曇らせています。", advice: "動くことよりも「待つこと」「感じること」が重要です。白黒つけようとせず、グレーな状態を受け入れてみて。" },
+            { id: 3, name: "女帝 (The Empress)", uprightK: "豊かさ、母性、繁栄、愛情", uprightD: "物質的、精神的な満足感に包まれる暗示です。愛を与え、受け取る喜びや、何かが実を結ぶ成果を表します。", reversedK: "過保護、浪費、嫉妬、怠惰", reversedD: "満たされすぎてわがままになったり、愛情が重すぎて相手をコントロールしようとしています。贅沢や浪費にも注意。", advice: "成果を独り占めせず、周囲に分け与える余裕を持ちましょう。リラックスして楽しむことが成功の鍵です。" },
+            { id: 4, name: "皇帝 (The Emperor)", uprightK: "支配、安定、責任、実行力", uprightD: "強い意志とリーダーシップで目標を達成します。ルールや秩序を守り、現実的な計画で基盤を固める時です。", reversedK: "独裁、横暴、無責任、未熟", reversedD: "自分の意見を押し付けすぎていたり、逆にプレッシャーに負けて逃げ出したい心理を表します。頑固さが裏目に。", advice: "感情論ではなく「事実」と「論理」で判断を。自分にも他人にも厳しいルールを適用する覚悟が必要です。" },
+            { id: 5, name: "教皇 (The Hierophant)", uprightK: "慈悲、伝統、信頼、社会的規範", uprightD: "広い心で導きを得たり、逆に誰かを導く立場になります。常識や伝統的なルールに従うことで信頼が得られます。", reversedK: "束縛、孤立、不信感、形式主義", reversedD: "古い価値観を押し付けられて窮屈に感じたり、形だけのルールに縛られています。あるいは、周囲からの孤立。", advice: "奇をてらわず、王道のやり方を選ぶのが吉。信頼できる目上の人や専門家に相談するのも良いでしょう。" },
+            { id: 6, name: "恋人 (The Lovers)", uprightK: "愛、調和、選択、情熱", uprightD: "直感的な惹きつけ合いや、心地よい関係性を示します。また、人生における重要な「選択」の場面も表します。", reversedK: "誘惑、不和、優柔不断、空虚", reversedD: "一時的な快楽に流されたり、決断できずにチャンスを逃しています。関係性のマンネリや不誠実さの暗示。", advice: "「好きなもの」を選んで大丈夫ですが、その選択には責任が伴うことを忘れずに。理屈より心のワクワクを大切に。" },
+            { id: 7, name: "戦車 (The Chariot)", uprightK: "勝利、前進、克服、スピード", uprightD: "障害を乗り越えて突き進むエネルギーに満ちています。迷わず行動することで、勝利を勝ち取れる強いカードです。", reversedK: "暴走、挫折、焦り、衝突", reversedD: "勢いだけで進んでコントロールを失っています。周囲が見えなくなり、他人と衝突したり、急停止を余儀なくされます。", advice: "今はブレーキを踏む時ではなくアクセルを踏む時。ただし、ハンドル（方向性）だけはしっかりと握っていてください。" },
+            { id: 8, name: "力 (Strength)", uprightK: "忍耐、勇気、自制心、受容", uprightD: "力任せではなく、精神的な強さで困難を克服します。相手を受け入れ、根気強く向き合うことで道が開けます。", reversedK: "無気力、本能的、依存、弱気", reversedD: "自分の感情（怒りや恐怖）に負けてしまっています。諦めが早かったり、逆に力で相手をねじ伏せようとしています。", advice: "「北風と太陽」の太陽になりましょう。強引に変えようとするのではなく、じっくりと時間をかけて信頼を築く姿勢が大切です。" },
+            { id: 9, name: "隠者 (The Hermit)", uprightK: "内観、探求、孤独、悟り", uprightD: "外の世界から離れ、自分の内面を見つめ直す時期です。答えは自分の中にあります。静かな環境で熟考しましょう。", reversedK: "閉鎖的、孤独感、偏屈、現実逃避", reversedD: "自分の殻に閉じこもりすぎて、周囲とのコミュニケーションを拒絶しています。卑屈になったり、過去に固執しています。", advice: "今は動く時ではありません。一度立ち止まり、「本当はどうしたいのか」を自分自身に問いかけてみてください。" },
+            { id: 10, name: "運命の輪 (Wheel of Fortune)", uprightK: "チャンス、転換点、幸運、変化", uprightD: "流れが来ています。予期せぬ幸運やチャンスが訪れるでしょう。変化を恐れず、流れに乗ることが重要です。", reversedK: "悪循環、すれ違い、不運、遅延", reversedD: "タイミングが合わず、物事が裏目に出やすい時期です。焦って状況を変えようとすると、さらに状況が悪化します。", advice: "今は自分の力でどうにかしようとせず、流れに身を任せるのが賢明です。悪い時もあれば良い時もある、と割り切りましょう。" },
+            { id: 11, name: "正義 (Justice)", uprightK: "均衡、公正、正当な判断、両立", uprightD: "感情に流されず、事実に基づいて公平な判断を下す時です。原因と結果がつり合い、正しい行いが報われます。", reversedK: "不公平、偏見、不正、優柔不断", reversedD: "バランスが崩れています。自分に都合の良い解釈をしていたり、一方的な視点で物事を見てしまっています。", advice: "感情を切り離し、客観的な視点を持つこと。メリットとデメリットを天秤にかけ、冷静な決断を心がけてください。" },
+            { id: 12, name: "吊るされた男 (The Hanged Man)", uprightK: "試練、奉仕、視点の転換、忍耐", uprightD: "身動きが取れない状態ですが、そこから新しい視点や気づきが得られます。今は動かずに耐えることが、後の成長に繋がります。", reversedK: "徒労、やせ我慢、骨折り損、執着", reversedD: "報われない努力を続けていたり、被害者意識が強くなっています。無駄な犠牲を払っていることに気づいていません。", advice: "動けないなら動かないこと。逆さまの視点で世界を見るように、全く違う角度から問題を見つめ直してみましょう。" },
+            { id: 13, name: "死神 (Death)", uprightK: "終焉、再出発、決別、一変", uprightD: "物事の完全な終わりと、新しいサイクルの始まりを示します。過去を断ち切ることで、新しい未来が訪れます。", reversedK: "未練、停滞、再生への恐れ、腐敗", reversedD: "終わったことにしがみつき、前に進めていません。変化を恐れて、死んだような状況を維持してしまっています。", advice: "「手放すこと」が最大のテーマです。終わることを恐れないでください。スペースを空けなければ、新しいものは入ってきません。" },
+            { id: 14, name: "節制 (Temperance)", uprightK: "調和、自制、循環、適応", uprightD: "異なるものが混じり合い、新しい調和が生まれます。極端に走らず、バランスを取りながら穏やかに進むことが大切です。", reversedK: "不均衡、浪費、消耗、不器用", reversedD: "生活のリズムが崩れていたり、感情のコントロールができていません。無理をしてバランスを崩しています。", advice: "「ほどほど」を意識しましょう。急激な変化を求めるのではなく、日々の積み重ねや、周囲との調整を大切にしてください。" },
+            { id: 15, name: "悪魔 (The Devil)", uprightK: "束縛、誘惑、執着、欲望", uprightD: "欲望に負けて抜け出せない状態です。それが悪いと分かっていてもやめられない、依存的な関係や習慣を表します。", reversedK: "解放、覚醒、断ち切る、更生", reversedD: "長い間の束縛から解放されるチャンスです。自分の弱さに気づき、悪い習慣や関係を断ち切ることができます。", advice: "自分が何に縛られているか自覚しましょう。その鎖は、実は自分自身で握っているだけで、いつでも手放せるかもしれません。" },
+            { id: 16, name: "塔 (The Tower)", uprightK: "崩壊、災難、急変、啓示", uprightD: "予期せぬトラブルや衝撃的な出来事によって、積み上げたものが崩れます。しかし、それは必要な破壊であり、真実が見える瞬間です。", reversedK: "緊迫、誤解、不幸中の幸い、長引く", reversedD: "崩壊がゆっくり進むか、あるいは崩壊を恐れて無理に現状維持しようとして苦しんでいる状態です。", advice: "壊れるものを守ろうとしないでください。更地になることはショックですが、それはより強固な土台を作るための第一歩です。" },
+            { id: 17, name: "星 (The Star)", uprightK: "希望、理想、ひらめき、憧れ", uprightD: "暗闇の中に光が見えます。才能が開花したり、遠くにある理想に向かって純粋な気持ちで進むことができるでしょう。", reversedK: "幻滅、高望み、悲観、無駄", reversedD: "理想が高すぎて現実が見えていません。期待していたことが外れたり、自分に自信を失ってしまっています。", advice: "理屈ではなく「直感」や「美意識」に従ってみて。現実的な利益よりも、心が洗われるような選択をすることが正解です。" },
+            { id: 18, name: "月 (The Moon)", uprightK: "不安、幻想、曖昧、胸騒ぎ", uprightD: "先が見えずに不安な心理状態です。嘘や隠し事、誤解が生じやすく、現実と妄想の区別がつきにくくなっています。", reversedK: "解消、現実化、安堵、脱出", reversedD: "徐々に霧が晴れていきます。嘘がバレたり、真実が明らかになることで、不安の原因が解消へ向かいます。", advice: "今は無理に答えを出そうとしないこと。見えているものが真実とは限りません。夜明けが来るまで静かに待ちましょう。" },
+            { id: 19, name: "太陽 (The Sun)", uprightK: "成功、祝福、活力、単純明快", uprightD: "すべてが明るみに出て、祝福される最高の状態です。悩みは吹き飛び、子供のような純粋な喜びを感じられるでしょう。", reversedK: "延期、不調、陰り、子供っぽい", reversedD: "成功まであと一歩のところで足踏みしたり、楽観的すぎて失敗する可能性があります。エネルギー不足の状態。", advice: "隠し事をせず、オープンになりましょう。自分を信じて堂々と振る舞うことが、周囲をも明るく照らします。" },
+            { id: 20, name: "審判 (Judgement)", uprightK: "復活、覚醒、決断、解放", uprightD: "過去の行いが報われたり、諦めていたことが復活するチャンスです。重要な決断を下し、新しいステージへ進む時です。", reversedK: "後悔、無視、再起不能、迷い", reversedD: "チャンスに気づかず見送ってしまったり、過去の亡霊に囚われて前に進めません。決断を先延ばしにしています。", advice: "過去の清算をする時です。良いことも悪いことも受け入れ、古い自分に別れを告げて、新しい呼びかけに応えてください。" },
+            { id: 21, name: "世界 (The World)", uprightK: "完成、統合、達成、ハッピーエンド", uprightD: "一つのサイクルが完全に終わり、最高の到達点に達しました。完璧な調和と満足感を得られるでしょう。", reversedK: "未完成、中途半端、停滞、妥協", reversedD: "あと少しのところで完成しない、あるいは惰性で続けている状態です。完璧を求めすぎて動けなくなっています。", advice: "ゴールは目の前です。これまでの旅路を振り返り、自分を褒めてあげましょう。そして次の旅の準備を始めてください。" }
+        ];
+
+        const positions = ["過去", "現在", "未来"];
+
+        function drawCards(num) {
+            const container = document.getElementById('reading-area');
+            container.innerHTML = ''; 
+
+            const useReversed = document.getElementById('use-reversed').checked;
+            
+            // デッキをコピーしてシャッフル準備
+            let currentDeck = [...tarotData];
+            
+            for (let i = 0; i < num; i++) {
+                // ランダムにカードを引く（重複なし）
+                const randomIndex = Math.floor(Math.random() * currentDeck.length);
+                const card = currentDeck.splice(randomIndex, 1)[0];
+                
+                const isReversed = useReversed ? Math.random() > 0.5 : false;
+                
+                // --- HTML要素の生成 ---
+                const wrapper = document.createElement('div');
+                wrapper.className = 'card-block fade-in';
+                wrapper.style.animationDelay = `${i * 0.2}s`; // 順番にフワッと表示
+
+                // スリーカードの場合はポジション（過去・現在・未来）を表示
+                if (num === 3) {
+                    const posLabel = document.createElement('div');
+                    posLabel.className = 'position-label';
+                    posLabel.innerText = positions[i];
+                    wrapper.appendChild(posLabel);
+                }
+
+                // ドット絵スプライトのコンテナ
+                const cardContainer = document.createElement('div');
+                cardContainer.className = 'card-container';
+                const spriteEl = document.createElement('div');
+                spriteEl.className = 'card-sprite';
+                cardContainer.appendChild(spriteEl);
+                wrapper.appendChild(cardContainer);
+
+                // カード名
+                const title = document.createElement('div');
+                title.className = 'card-title';
+                title.innerText = card.name;
+                wrapper.appendChild(title);
+
+                // 正位置・逆位置のバッジ
+                const direction = document.createElement('div');
+                direction.className = `card-direction ${isReversed ? 'reversed-tag' : 'upright'}`;
+                direction.innerText = isReversed ? '▼ 逆位置 (Reversed)' : '▲ 正位置 (Upright)';
+                wrapper.appendChild(direction);
+
+                // 意味と解説ボックス
+                const meaningBox = document.createElement('div');
+                meaningBox.className = 'meaning-box';
+                
+                const keywords = document.createElement('span');
+                keywords.className = 'keywords';
+                keywords.innerText = isReversed ? card.reversedK : card.uprightK;
+                
+                const desc = document.createElement('div');
+                desc.innerText = isReversed ? card.reversedD : card.uprightD;
+                
+                const advice = document.createElement('div');
+                advice.className = 'advice-box';
+                advice.innerHTML = `<strong>💡 助言:</strong><br>${card.advice}`;
+
+                meaningBox.appendChild(keywords);
+                meaningBox.appendChild(desc);
+                meaningBox.appendChild(advice);
+                wrapper.appendChild(meaningBox);
+
+                container.appendChild(wrapper);
+
+                // --- アニメーションと画像切り替え処理 ---
+                // フリップアニメーション開始
+                setTimeout(() => {
+                    if (isReversed) {
+                        spriteEl.classList.add('flip-reversed');
+                    } else {
+                        spriteEl.classList.add('flip');
+                    }
+                }, 100 + (i * 200));
+
+                // 裏返った瞬間に画像を切り替える（横6列、縦4行の計算！）
+                setTimeout(() => {
+                    const col = card.id % 6;
+                    const row = Math.floor(card.id / 6);
+                    const posX = -(col * 160);
+                    const posY = -(row * 240);
+
+                    spriteEl.style.backgroundPosition = `${posX}px ${posY}px`;
+
+                    if (isReversed) {
+                        spriteEl.classList.add('reversed');
+                    }
+                }, 400 + (i * 200)); // アニメーションの半分の時間で絵を切り替え
+            }
+        }
+    </script>
+</body>
+</html>
