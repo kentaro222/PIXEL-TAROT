@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dot-tarot-v1';
+const CACHE_NAME = 'pixel-tarot-v1';
 const urlsToCache = [
   'index.html',
   'タロット16.png',
